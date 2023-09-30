@@ -1,3 +1,4 @@
 from view import view
 x = view()
-x.exeFunc()
+if __name__ == '__main__':
+    x.exeFunc()
