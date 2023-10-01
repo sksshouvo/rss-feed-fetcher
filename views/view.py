@@ -1,9 +1,8 @@
 import os
-
 import tkinter
 from dotenv import load_dotenv
 from tkinter import messagebox
-
+from classes.rss_feed import rss_feed_class
 from classes.validation import Validation
 
 load_dotenv()
@@ -18,24 +17,29 @@ class View:
         self.app_name = app_name
 
     @staticmethod
-    def on_validate_input(self, P):
+    def on_validate_input(P):
         # This function is called when the Entry widget is modified
         # Check if the input is a valid number with a maximum length of 2
         return P.isdigit() and len(P) <= 2
 
     @staticmethod
-    def start_action(self, link_input):
+    def start_action(link_input, interval_count):
+        rss_feed_fetcher = rss_feed_class()
         entry_text = link_input.get()
+        entry_number = interval_count.get()
+
         try:
             # Attempt to validate the entry
             Validation.validate_entry(entry_text)
+            Validation.validate_interval_count(entry_number)
+            rss_feed_fetcher.fetch_rss_feed(entry_text)
         except ValueError as e:
             # Display an error message when validation fails
             messagebox.showerror("Error", str(e))
-
+            
     def exe_func(self):
         root = tkinter.Tk()
-        img = tkinter.PhotoImage(file=self.favicon_path)
+        img  = tkinter.PhotoImage(file=self.favicon_path)
         root.iconphoto(False, img)
         root.title(self.app_name)
         root.geometry("800x600")
@@ -101,7 +105,7 @@ class View:
         start_button = tkinter.Button(
             root,
             text="Start",
-            command=lambda entry=link_input: self.start_action(entry)
+             command=lambda entry=link_input, interval_count = interval_count_input : self.start_action(entry, interval_count)
         )
         start_button.place(x=625, y=75, width=70, height=30)
         # start button
