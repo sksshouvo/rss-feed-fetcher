@@ -13,11 +13,12 @@ class rss_feed_class:
         print('Number of posts in RSS feed :', len(rss_feed_link_validation))
         print(json.dumps(rss_feed_link_validation, indent=4))
         return json.dumps(rss_feed_link_validation)
+    pass
 
     @staticmethod
-    def store_rss_feed():
+    def store_rss_feed(rss_feed_data):
         try:
-            sqlite3.connect('test.db')
+            sqlite3.connect('databases/rss_feed.db')
             print("Opened database successfully")
         except ValueError as e:
             # Display an error message when validation fails

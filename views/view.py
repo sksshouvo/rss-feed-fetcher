@@ -33,8 +33,8 @@ class View:
             # Attempt to validate the entry
             Validation.validate_entry(entry_text)
             Validation.validate_interval_count(entry_number)
-            rss_feed_fetcher.fetch_rss_feed(entry_text)
-            rss_feed_fetcher.store_rss_feed()
+            rss_data = rss_feed_fetcher.fetch_rss_feed(entry_text)
+            rss_feed_fetcher.store_rss_feed(rss_data)
         except ValueError as e:
             # Display an error message when validation fails
             messagebox.showerror("Error", str(e))
