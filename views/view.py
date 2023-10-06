@@ -5,7 +5,7 @@ from tkinter import messagebox
 from classes.rss_feed import rss_feed_class
 from classes.validation import Validation
 import tkinter.font as tkFont
-
+from model.rss_feed_model import rss_feed_models
 load_dotenv()
 
 
@@ -34,7 +34,8 @@ class View:
             Validation.validate_entry(entry_text)
             Validation.validate_interval_count(entry_number)
             rss_data = rss_feed_fetcher.fetch_rss_feed(entry_text)
-            rss_feed_fetcher.store_rss_feed(rss_data)
+            rss_feed_models.check_table()
+            rss_feed_models.create(rss_data)
         except ValueError as e:
             # Display an error message when validation fails
             messagebox.showerror("Error", str(e))

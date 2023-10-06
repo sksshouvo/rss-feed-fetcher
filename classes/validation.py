@@ -16,9 +16,11 @@ class Validation:
             messagebox.showwarning("Warning", "Interval Count is invalid.")
             return False
         return True
+    
     @staticmethod
     def rss_feed_link_validation(rss_feed_link):
         feed = feedparser.parse(rss_feed_link)
         if not len(feed.entries): 
             messagebox.showwarning("Warning", "Invalid rss feed Link")
+            return False
         return feed.entries
