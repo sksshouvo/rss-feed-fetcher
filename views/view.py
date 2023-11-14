@@ -4,7 +4,8 @@ from dotenv import load_dotenv
 from tkinter import messagebox
 from classes.rss_feed import rss_feed_class
 from classes.validation import Validation
-
+import tkinter.font as tkFont
+from model.rss_feed_model import rss_feed_models
 load_dotenv()
 
 
@@ -32,7 +33,9 @@ class View:
             # Attempt to validate the entry
             Validation.validate_entry(entry_text)
             Validation.validate_interval_count(entry_number)
-            rss_feed_fetcher.fetch_rss_feed(entry_text)
+            rss_data = rss_feed_fetcher.fetch_rss_feed(entry_text)
+            rss_feed_models.check_table()
+            rss_feed_models.create(rss_data)
         except ValueError as e:
             # Display an error message when validation fails
             messagebox.showerror("Error", str(e))
@@ -40,6 +43,9 @@ class View:
     def exe_func(self):
         root = tkinter.Tk()
         img  = tkinter.PhotoImage(file=self.favicon_path)
+        
+        #creating a font object
+        fontObj = tkFont.Font(size=15)
         root.iconphoto(False, img)
         root.title(self.app_name)
         root.geometry("800x600")
@@ -112,4 +118,19 @@ class View:
         stop_button = tkinter.Button(root, text="Stop")
         stop_button.place(x=700, y=75, width=70, height=30)
         # Code to add widgets will go here...
+        # Create a LabelFrame
+        data_section_frame = tkinter.Frame(
+            root,
+            width=775,
+            height=420,
+            bg="white",
+            highlightbackground="black",
+            highlightthickness=2,
+            borderwidth=2
+        )
+        # Configure the Frame
+        data_section_frame.place(x=10, y=150)
+        # text field
+        rss_feed_text = tkinter.Label(root, text="Rss Feed List", bg='white', font=fontObj)
+        rss_feed_text.place(x=20, y=160)
         root.mainloop()
