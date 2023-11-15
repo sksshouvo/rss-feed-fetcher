@@ -16,6 +16,7 @@ class View:
     ):
         self.favicon_path = favicon_path
         self.app_name = app_name
+        self.rss_feed_data = []
 
     @staticmethod
     def on_validate_input(P):
@@ -24,7 +25,7 @@ class View:
         return P.isdigit() and len(P) <= 2
 
     @staticmethod
-    def start_action(link_input, interval_count):
+    def start_action(self, link_input, interval_count):
         rss_feed_fetcher = rss_feed_class()
         entry_text = link_input.get()
         entry_number = interval_count.get()
@@ -36,6 +37,7 @@ class View:
             rss_data = rss_feed_fetcher.fetch_rss_feed(entry_text)
             rss_feed_models.check_table()
             rss_feed_models.create(rss_data)
+            self.rss_feed_data.append(rss_feed_models.get_10_rows())
         except ValueError as e:
             # Display an error message when validation fails
             messagebox.showerror("Error", str(e))
@@ -111,7 +113,7 @@ class View:
         start_button = tkinter.Button(
             root,
             text="Start",
-             command=lambda entry=link_input, interval_count = interval_count_input : self.start_action(entry, interval_count)
+             command=lambda entry=link_input, interval_count = interval_count_input : self.start_action(self, entry, interval_count)
         )
         start_button.place(x=625, y=75, width=70, height=30)
         # start button
@@ -133,4 +135,20 @@ class View:
         # text field
         rss_feed_text = tkinter.Label(root, text="Rss Feed List", bg='white', font=fontObj)
         rss_feed_text.place(x=20, y=160)
+
+        # data list
+        data_list = tkinter.Listbox()
+        data_list.insert(1, "Python")
+        data_list.insert(2, "Perl")
+        data_list.insert(3, "C")
+        data_list.insert(4, "PHP")
+        data_list.insert(5, "JSP")
+        data_list.insert(6, "Ruby")
+        data_list.insert(7, "C")
+        data_list.insert(8, "PHP")
+        data_list.insert(9, "JSP")
+        data_list.insert(10, "Ruby")
+
+        data_list.place(x=20, y=190, width=750)
+
         root.mainloop()

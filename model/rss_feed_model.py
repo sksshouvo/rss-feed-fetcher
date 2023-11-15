@@ -30,6 +30,16 @@ class rss_feed_models:
         pass
 
     @staticmethod
+    def get_10_rows():
+        connection = sqlite3.connect('databases/rss_feed.db')
+        cursor = connection.cursor()
+        cursor.execute(f"SELECT * FROM new_rss_feeds LIMIT 0,10")
+        data = cursor.fetchall()
+        print("fetched 10 datas from new_rss_feeds")
+        return data
+
+
+    @staticmethod
     def get_single():
         pass
     
