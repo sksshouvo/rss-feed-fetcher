@@ -35,7 +35,6 @@ class rss_feed_models:
         cursor = connection.cursor()
         cursor.execute(f"SELECT * FROM new_rss_feeds LIMIT 0,10")
         data = cursor.fetchall()
-        print("fetched 10 datas from new_rss_feeds")
         return data
 
 
