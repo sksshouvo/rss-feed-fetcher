@@ -15,7 +15,8 @@ class View:
         favicon_path=os.getenv("FAVICON_PATH")
     ):
         self.favicon_path = favicon_path
-        self.app_name = app_name
+        self.app_name     = app_name
+        self.feed_data    = []
 
     @staticmethod
     def on_validate_input(P):
@@ -23,8 +24,8 @@ class View:
         # Check if the input is a valid number with a maximum length of 2
         return P.isdigit() and len(P) <= 2
 
-    @staticmethod
-    def start_action(link_input, interval_count):
+    
+    def start_action(self, link_input, interval_count):
         rss_feed_fetcher = rss_feed_class()
         entry_text = link_input.get()
         entry_number = interval_count.get()
@@ -36,6 +37,8 @@ class View:
             rss_data = rss_feed_fetcher.fetch_rss_feed(entry_text)
             rss_feed_models.check_table()
             rss_feed_models.create(rss_data)
+            self.feed_data = rss_feed_models.get_all()
+            
         except ValueError as e:
             # Display an error message when validation fails
             messagebox.showerror("Error", str(e))
@@ -133,4 +136,5 @@ class View:
         # text field
         rss_feed_text = tkinter.Label(root, text="Rss Feed List", bg='white', font=fontObj)
         rss_feed_text.place(x=20, y=160)
+        print(self.feed_data)
         root.mainloop()

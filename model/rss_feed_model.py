@@ -27,7 +27,13 @@ class rss_feed_models:
         connection.close()
     @staticmethod
     def get_all():
-        pass
+        connection = sqlite3.connect('databases/rss_feed.db')
+        cursor = connection.cursor()
+        cursor.execute(f"SELECT * FROM new_rss_feeds ORDER BY id DESC")
+        all_data = cursor.fetchall()
+        connection.commit()
+        connection.close()
+        return all_data
 
     @staticmethod
     def get_single():
