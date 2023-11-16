@@ -53,10 +53,6 @@ class View:
             rss_data = rss_feed_fetcher.fetch_rss_feed(entry_text)
             rss_feed_models.check_table()
             rss_feed_models.create(rss_data)
-<<<<<<< HEAD
-            self.feed_data = rss_feed_models.get_all()
-            
-=======
             self.rss_feed_data.extend(rss_feed_models.get_10_rows())
 
             data_list = tkinter.Listbox()
@@ -66,7 +62,6 @@ class View:
                 data_list.insert(tkinter.END, item[1])  # Assuming 'title' is in the second column
             
 
->>>>>>> daeaa8419cdbb555701a0f92ae80de32dc56f3b6
         except ValueError as e:
             # Display an error message when validation fails
             messagebox.showerror("Error", str(e))
