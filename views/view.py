@@ -23,6 +23,17 @@ class View:
         # This function is called when the Entry widget is modified
         # Check if the input is a valid number with a maximum length of 2
         return P.isdigit() and len(P) <= 2
+    
+    @staticmethod
+    def on_select(self, event):
+        selected_index = self.listbox.curselection()
+        if selected_index:
+            selected_item = self.listbox.get(selected_index)
+            link = self.data[selected_index[0]][2]  # Assuming 'link' is in the third column
+            confirmation = messagebox.askyesno("Confirmation", f"Do you want to open the link:\n{link}?")
+            if confirmation:
+                # Open the link in the default web browser
+                webbrowser.open_new_tab(link)
 
     @staticmethod
     def start_action(self, link_input, interval_count):
@@ -37,7 +48,15 @@ class View:
             rss_data = rss_feed_fetcher.fetch_rss_feed(entry_text)
             rss_feed_models.check_table()
             rss_feed_models.create(rss_data)
-            self.rss_feed_data.append(rss_feed_models.get_10_rows())
+            self.rss_feed_data.extend(rss_feed_models.get_10_rows())
+
+            data_list = tkinter.Listbox()
+            data_list.place(x=20, y=190, width=750)
+
+            for item in self.rss_feed_data[:10]:  # Display only the first 10 rows
+                data_list.insert(tkinter.END, item[1])  # Assuming 'title' is in the second column
+            
+
         except ValueError as e:
             # Display an error message when validation fails
             messagebox.showerror("Error", str(e))
@@ -135,20 +154,5 @@ class View:
         # text field
         rss_feed_text = tkinter.Label(root, text="Rss Feed List", bg='white', font=fontObj)
         rss_feed_text.place(x=20, y=160)
-
-        # data list
-        data_list = tkinter.Listbox()
-        data_list.insert(1, "Python")
-        data_list.insert(2, "Perl")
-        data_list.insert(3, "C")
-        data_list.insert(4, "PHP")
-        data_list.insert(5, "JSP")
-        data_list.insert(6, "Ruby")
-        data_list.insert(7, "C")
-        data_list.insert(8, "PHP")
-        data_list.insert(9, "JSP")
-        data_list.insert(10, "Ruby")
-
-        data_list.place(x=20, y=190, width=750)
 
         root.mainloop()
