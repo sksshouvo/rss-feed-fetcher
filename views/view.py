@@ -154,9 +154,4 @@ class View:
         # text field
         rss_feed_text = tkinter.Label(root, text="Rss Feed List", bg='white', font=fontObj)
         rss_feed_text.place(x=20, y=160)
-<<<<<<< HEAD
-        print(self.feed_data)
-=======
-
->>>>>>> daeaa8419cdbb555701a0f92ae80de32dc56f3b6
         root.mainloop()
