@@ -1,22 +1,28 @@
+from tksheet import Sheet
 import tkinter as tk
-import tksheet
-top = tk.Tk()
-sheet = tksheet.Sheet(top)
-sheet.grid()
-sheet.set_sheet_data([[f"{ri+cj}" for cj in range(4)] for ri in range(1)])
-# table enable choices listed below:
-sheet.enable_bindings(("single_select",
-                       "row_select",
-                       "column_width_resize",
-                       "arrowkeys",
-                       "right_click_popup_menu",
-                       "rc_select",
-                       "rc_insert_row",
-                       "rc_delete_row",
-                       "copy",
-                       "cut",
-                       "paste",
-                       "delete",
-                       "undo",
-                       "edit_cell"))
-top.mainloop()
+
+
+class demo(tk.Tk):
+    def __init__(self):
+        tk.Tk.__init__(self)
+        self.grid_columnconfigure(0, weight = 1)
+        self.grid_rowconfigure(0, weight = 1)
+        self.frame = tk.Frame(self)
+        self.frame.grid_columnconfigure(0, weight = 1)
+        self.frame.grid_rowconfigure(0, weight = 1)
+        self.sheet = Sheet(self.frame,
+                           data = [
+                                    [
+                                        f"Row {r}, Column {c}\nnewline1\nnewline2" 
+                                        for c in range(50)
+                                    ]
+                                for r in range(500)
+                                ]
+                            )
+        self.sheet.enable_bindings()
+        self.frame.grid(row = 0, column = 0, sticky = "nswe")
+        self.sheet.grid(row = 0, column = 0, sticky = "nswe")
+
+
+app = demo()
+app.mainloop()

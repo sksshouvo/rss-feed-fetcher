@@ -15,16 +15,32 @@ class View:
         favicon_path=os.getenv("FAVICON_PATH")
     ):
         self.favicon_path = favicon_path
+<<<<<<< HEAD
         self.app_name     = app_name
         self.feed_data    = []
+=======
+        self.app_name = app_name
+        self.rss_feed_data = []
+>>>>>>> daeaa8419cdbb555701a0f92ae80de32dc56f3b6
 
     @staticmethod
     def on_validate_input(P):
         # This function is called when the Entry widget is modified
         # Check if the input is a valid number with a maximum length of 2
         return P.isdigit() and len(P) <= 2
-
     
+    @staticmethod
+    def on_select(self, event):
+        selected_index = self.listbox.curselection()
+        if selected_index:
+            selected_item = self.listbox.get(selected_index)
+            link = self.data[selected_index[0]][2]  # Assuming 'link' is in the third column
+            confirmation = messagebox.askyesno("Confirmation", f"Do you want to open the link:\n{link}?")
+            if confirmation:
+                # Open the link in the default web browser
+                webbrowser.open_new_tab(link)
+
+    @staticmethod
     def start_action(self, link_input, interval_count):
         rss_feed_fetcher = rss_feed_class()
         entry_text = link_input.get()
@@ -37,8 +53,20 @@ class View:
             rss_data = rss_feed_fetcher.fetch_rss_feed(entry_text)
             rss_feed_models.check_table()
             rss_feed_models.create(rss_data)
+<<<<<<< HEAD
             self.feed_data = rss_feed_models.get_all()
             
+=======
+            self.rss_feed_data.extend(rss_feed_models.get_10_rows())
+
+            data_list = tkinter.Listbox()
+            data_list.place(x=20, y=190, width=750)
+
+            for item in self.rss_feed_data[:10]:  # Display only the first 10 rows
+                data_list.insert(tkinter.END, item[1])  # Assuming 'title' is in the second column
+            
+
+>>>>>>> daeaa8419cdbb555701a0f92ae80de32dc56f3b6
         except ValueError as e:
             # Display an error message when validation fails
             messagebox.showerror("Error", str(e))
@@ -114,7 +142,7 @@ class View:
         start_button = tkinter.Button(
             root,
             text="Start",
-             command=lambda entry=link_input, interval_count = interval_count_input : self.start_action(entry, interval_count)
+             command=lambda entry=link_input, interval_count = interval_count_input : self.start_action(self, entry, interval_count)
         )
         start_button.place(x=625, y=75, width=70, height=30)
         # start button
@@ -136,5 +164,9 @@ class View:
         # text field
         rss_feed_text = tkinter.Label(root, text="Rss Feed List", bg='white', font=fontObj)
         rss_feed_text.place(x=20, y=160)
+<<<<<<< HEAD
         print(self.feed_data)
+=======
+
+>>>>>>> daeaa8419cdbb555701a0f92ae80de32dc56f3b6
         root.mainloop()
