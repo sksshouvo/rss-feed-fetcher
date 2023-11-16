@@ -15,13 +15,8 @@ class View:
         favicon_path=os.getenv("FAVICON_PATH")
     ):
         self.favicon_path = favicon_path
-<<<<<<< HEAD
-        self.app_name     = app_name
-        self.feed_data    = []
-=======
         self.app_name = app_name
         self.rss_feed_data = []
->>>>>>> daeaa8419cdbb555701a0f92ae80de32dc56f3b6
 
     @staticmethod
     def on_validate_input(P):
