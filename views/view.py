@@ -1,5 +1,6 @@
 import os
 import tkinter
+import webbrowser
 from dotenv import load_dotenv
 from tkinter import messagebox
 from classes.rss_feed import rss_feed_class
@@ -16,7 +17,9 @@ class View:
     ):
         self.favicon_path = favicon_path
         self.app_name = app_name
+        self.root = tkinter.Tk()
         self.rss_feed_data = []
+        self.listbox = ""
 
     @staticmethod
     def on_validate_input(P):
@@ -24,12 +27,11 @@ class View:
         # Check if the input is a valid number with a maximum length of 2
         return P.isdigit() and len(P) <= 2
     
-    @staticmethod
     def on_select(self, event):
         selected_index = self.listbox.curselection()
         if selected_index:
             selected_item = self.listbox.get(selected_index)
-            link = self.data[selected_index[0]][2]  # Assuming 'link' is in the third column
+            link = self.rss_feed_data[selected_index[0]][2]  # Assuming 'link' is in the third column
             confirmation = messagebox.askyesno("Confirmation", f"Do you want to open the link:\n{link}?")
             if confirmation:
                 # Open the link in the default web browser
@@ -48,31 +50,36 @@ class View:
             rss_data = rss_feed_fetcher.fetch_rss_feed(entry_text)
             rss_feed_models.check_table()
             rss_feed_models.create(rss_data)
-            self.rss_feed_data.extend(rss_feed_models.get_10_rows())
 
-            data_list = tkinter.Listbox()
-            data_list.place(x=20, y=190, width=750)
+            self.rss_feed_data = rss_feed_models.get_10_rows()
+
+            self.listbox = tkinter.Listbox()
+            self.listbox.place(x=20, y=190, width=750)
 
             for item in self.rss_feed_data[:10]:  # Display only the first 10 rows
-                data_list.insert(tkinter.END, item[1])  # Assuming 'title' is in the second column
+                if not rss_feed_models.check_for_new_data(item[2]):
+                    data_set = f"{str(item[0])} - {item[1]} (NEW)"
+                else:
+                    data_set = f"{str(item[0])} - {item[1]}"
+                self.listbox.insert(tkinter.END, data_set)  # Assuming 'title' is in the second column
             
-
+            self.listbox.bind("<<ListboxSelect>>", self.on_select)
         except ValueError as e:
             # Display an error message when validation fails
             messagebox.showerror("Error", str(e))
             
     def exe_func(self):
-        root = tkinter.Tk()
+        
         img  = tkinter.PhotoImage(file=self.favicon_path)
         
         #creating a font object
         fontObj = tkFont.Font(size=15)
-        root.iconphoto(False, img)
-        root.title(self.app_name)
-        root.geometry("800x600")
+        self.root.iconphoto(False, img)
+        self.root.title(self.app_name)
+        self.root.geometry("800x600")
         # Create a LabelFrame
         frame = tkinter.Frame(
-            root,
+            self.root,
             width=775,
             height=100,
             bg="white",
@@ -84,7 +91,7 @@ class View:
         frame.place(x=10, y=20)
         # link entry field
         link_input = tkinter.Entry(
-            root,
+            self.root,
             bg="white",
             highlightbackground="black",
             highlightthickness=1,
@@ -92,20 +99,20 @@ class View:
         )
         link_input.insert(0, "  Paste Your Rss Feed Link Here...")
         link_input.place(x=20, y=40, width=750, height=30)
-        root.resizable(0, 0)
+        self.root.resizable(0, 0)
         # text field
-        text_label = tkinter.Label(root, text="Refresh in every", bg='white')
+        text_label = tkinter.Label(self.root, text="Refresh in every", bg='white')
         text_label.place(x=20, y=80)
         # interval count field
         interval_count_input = tkinter.Entry(
-            root,
+            self.root,
             bg="white",
             highlightbackground="black",
             highlightthickness=1,
             borderwidth=1
         )
         interval_count_input.place(x=120, y=80, width=35)
-        validate_input = root.register(self.on_validate_input)
+        validate_input = self.root.register(self.on_validate_input)
         interval_count_input.config(
             validate="key",
             validatecommand=(validate_input, "%P")
@@ -126,22 +133,22 @@ class View:
         clicked.set("MIN")
 
         # Create Dropdown menu
-        interval = tkinter.OptionMenu(root, clicked, *options)
+        interval = tkinter.OptionMenu(self.root, clicked, *options)
         interval.place(x=160, y=75)
         # start button
         start_button = tkinter.Button(
-            root,
+            self.root,
             text="Start",
              command=lambda entry=link_input, interval_count = interval_count_input : self.start_action(self, entry, interval_count)
         )
         start_button.place(x=625, y=75, width=70, height=30)
         # start button
-        stop_button = tkinter.Button(root, text="Stop")
+        stop_button = tkinter.Button(self.root, text="Stop")
         stop_button.place(x=700, y=75, width=70, height=30)
         # Code to add widgets will go here...
         # Create a LabelFrame
         data_section_frame = tkinter.Frame(
-            root,
+            self.root,
             width=775,
             height=420,
             bg="white",
@@ -152,7 +159,6 @@ class View:
         # Configure the Frame
         data_section_frame.place(x=10, y=150)
         # text field
-        rss_feed_text = tkinter.Label(root, text="Rss Feed List", bg='white', font=fontObj)
+        rss_feed_text = tkinter.Label(self.root, text="Rss Feed List", bg='white', font=fontObj)
         rss_feed_text.place(x=20, y=160)
-
-        root.mainloop()
+        self.root.mainloop()

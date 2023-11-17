@@ -27,7 +27,13 @@ class rss_feed_models:
         connection.close()
     @staticmethod
     def get_all():
-        pass
+        connection = sqlite3.connect('databases/rss_feed.db')
+        cursor = connection.cursor()
+        cursor.execute(f"SELECT * FROM new_rss_feeds ORDER BY id DESC")
+        all_data = cursor.fetchall()
+        connection.commit()
+        connection.close()
+        return all_data
 
     @staticmethod
     def get_10_rows():
@@ -35,6 +41,8 @@ class rss_feed_models:
         cursor = connection.cursor()
         cursor.execute(f"SELECT * FROM new_rss_feeds LIMIT 0,10")
         data = cursor.fetchall()
+        connection.commit()
+        connection.close()
         return data
 
 
@@ -60,6 +68,16 @@ class rss_feed_models:
     @staticmethod
     def update():
         pass
+
+    @staticmethod
+    def check_for_new_data(link):
+        connection = sqlite3.connect('databases/rss_feed.db')
+        cursor = connection.cursor()
+        cursor.execute(f"SELECT * FROM old_rss_feeds WHERE old_rss_feeds.link='"+link+"'")
+        all_data = cursor.fetchone()
+        connection.commit()
+        connection.close()
+        return all_data
 
     @staticmethod
     def delete():
