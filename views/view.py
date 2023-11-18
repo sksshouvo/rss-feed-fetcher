@@ -1,22 +1,26 @@
-import os
 import tkinter
 import webbrowser
-from dotenv import load_dotenv
 from tkinter import messagebox
 from classes.rss_feed import rss_feed_class
 from classes.validation import Validation
 import tkinter.font as tkFont
-from model.rss_feed_model import rss_feed_models
-load_dotenv()
+from model.rss_feed_model import RssFeedModel
+from config import settings
+from icecream import ic
 
 
 class View:
+    interval_id = None
+
     def __init__(
-        self, app_name=os.getenv("APP_NAME"),
-        favicon_path=os.getenv("FAVICON_PATH")
+        self,
+        app_name=settings.APP_NAME,
+        favicon_path=settings.FAVICON_PATH,
+        initial_show_limit=settings.INITIAL_SHOW_LIMIT
     ):
         self.favicon_path = favicon_path
         self.app_name = app_name
+        self.initial_show_limit = initial_show_limit
         self.root = tkinter.Tk()
         self.rss_feed_data = []
         self.listbox = ""
@@ -26,7 +30,7 @@ class View:
         # This function is called when the Entry widget is modified
         # Check if the input is a valid number with a maximum length of 2
         return P.isdigit() and len(P) <= 2
-    
+
     def on_select(self, event):
         selected_index = self.listbox.curselection()
         if selected_index:
@@ -37,42 +41,89 @@ class View:
                 # Open the link in the default web browser
                 webbrowser.open_new_tab(link)
 
-    @staticmethod
-    def start_action(self, link_input, interval_count):
+    def on_start_button_click(self, link_input, interval):
+        self.start_button.config(text="Running", state="disabled")
+        self.stop_button.config(text="Stop", state="normal")
+
+        self.start_action(link_input, interval)
+
+    def start_action(self, link_input, interval):
         rss_feed_fetcher = rss_feed_class()
+        rss_feed_model = RssFeedModel()
         entry_text = link_input.get()
-        entry_number = interval_count.get()
+        interval_value = interval.get("value").get()
+        interval_unit = interval.get("unit").get()
 
         try:
             # Attempt to validate the entry
             Validation.validate_entry(entry_text)
-            Validation.validate_interval_count(entry_number)
+            Validation.validate_interval_count(interval_value)
             rss_data = rss_feed_fetcher.fetch_rss_feed(entry_text)
-            rss_feed_models.check_table()
-            rss_feed_models.create(rss_data)
+            rss_feed_model.check_table()
+            rss_feed_model.create(rss_data, limit=self.initial_show_limit)
 
-            self.rss_feed_data = rss_feed_models.get_10_rows()
+            ic(interval_value)
+            ic(interval_unit)
+
+            self.rss_feed_data = rss_feed_model.get_all(limit=self.initial_show_limit)
 
             self.listbox = tkinter.Listbox()
             self.listbox.place(x=20, y=190, width=750)
 
-            for item in self.rss_feed_data[:10]:  # Display only the first 10 rows
-                if not rss_feed_models.check_for_new_data(item[2]):
-                    data_set = f"{str(item[0])} - {item[1]} (NEW)"
+            for index, feed_data in enumerate(self.rss_feed_data[:self.initial_show_limit]):
+                if not rss_feed_model.check_for_new_data(link=feed_data[2]):
+                    data_set = f"{str(feed_data[0])} - {feed_data[1]} (NEW)"
                 else:
-                    data_set = f"{str(item[0])} - {item[1]}"
+                    data_set = f"{str(index + 1)} - {feed_data[1]}"
                 self.listbox.insert(tkinter.END, data_set)  # Assuming 'title' is in the second column
-            
+
             self.listbox.bind("<<ListboxSelect>>", self.on_select)
+
+            self.schedule_refresh(link_input, interval)
         except ValueError as e:
             # Display an error message when validation fails
             messagebox.showerror("Error", str(e))
-            
+
+    def schedule_refresh(self, link_input, interval: dict):
+        # Get the interval value and unit
+        interval_value = int(interval.get("value").get())
+        interval_unit = interval.get("unit").get()
+
+        # Calculate interval in milliseconds based on the selected unit
+        interval_ms = self.calculate_interval_milliseconds(interval_value, interval_unit)
+
+        # Schedule the refresh after the specified interval
+        self.interval_id = self.root.after(interval_ms, lambda: self.start_action(link_input, interval))
+
+    @staticmethod
+    def calculate_interval_milliseconds(interval_count, interval_unit):
+        # value = interval_count_input.get()
+        # unit = interval_unit_input.get()
+
+        interval_mapping = {
+            "SEC": 1000,  # Convert seconds to milliseconds
+            "MIN": 60 * 1000,  # Convert minutes to milliseconds
+            "HOUR": 60 * 60 * 1000,  # Convert hours to milliseconds
+            "DAYS": 24 * 60 * 60 * 1000,  # Convert days to milliseconds
+            "MONTH": 30 * 24 * 60 * 60 * 1000  # Approximate month to milliseconds (adjust as needed)
+        }
+        return interval_count * interval_mapping[interval_unit]
+
+    def stop_action(self):
+        if self.interval_id:
+            self.root.after_cancel(self.interval_id)
+            self.interval_id = None  # Reset the interval ID
+
+    def on_stop_button_click(self):
+        # Call the stop_action method when the "Stop" button is clicked
+        self.stop_action()
+        self.start_button.config(text="Start", state="normal")
+        self.stop_button.config(text="Stopped", state="disabled")
+
     def exe_func(self):
-        
-        img  = tkinter.PhotoImage(file=self.favicon_path)
-        
-        #creating a font object
+
+        img = tkinter.PhotoImage(file=self.favicon_path)
+
         fontObj = tkFont.Font(size=15)
         self.root.iconphoto(False, img)
         self.root.title(self.app_name)
@@ -120,6 +171,7 @@ class View:
 
         # Dropdown menu options
         options = [
+            "SEC",
             "MIN",
             "HOUR",
             "DAYS",
@@ -135,16 +187,30 @@ class View:
         # Create Dropdown menu
         interval = tkinter.OptionMenu(self.root, clicked, *options)
         interval.place(x=160, y=75)
+
+        interval_period = dict(
+            value=interval_count_input,
+            unit=clicked,
+        )
+
         # start button
         start_button = tkinter.Button(
             self.root,
             text="Start",
-             command=lambda entry=link_input, interval_count = interval_count_input : self.start_action(self, entry, interval_count)
+            command=lambda link=link_input, interval_period=interval_period: self.on_start_button_click(link, interval_period)
         )
         start_button.place(x=625, y=75, width=70, height=30)
+
+        self.start_button = start_button
+
         # start button
-        stop_button = tkinter.Button(self.root, text="Stop")
+        stop_button = tkinter.Button(
+            self.root,
+            text="Stop",
+            command=self.on_stop_button_click
+        )
         stop_button.place(x=700, y=75, width=70, height=30)
+        self.stop_button = stop_button
         # Code to add widgets will go here...
         # Create a LabelFrame
         data_section_frame = tkinter.Frame(
