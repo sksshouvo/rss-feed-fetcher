@@ -1,12 +1,14 @@
-import tkinter
 import webbrowser
+
+import tkinter
+import tkinter.font as tkFont
+from icecream import ic
 from tkinter import messagebox
+
 from classes.rss_feed import rss_feed_class
 from classes.validation import Validation
-import tkinter.font as tkFont
-from model.rss_feed_model import RssFeedModel
 from config import settings
-from icecream import ic
+from model.rss_feed_model import RssFeedModel
 
 
 class View:

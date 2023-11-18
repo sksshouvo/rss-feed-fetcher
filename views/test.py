@@ -1,5 +1,5 @@
-from tksheet import Sheet
 import tkinter as tk
+from tksheet import Sheet
 
 
 class demo(tk.Tk):
