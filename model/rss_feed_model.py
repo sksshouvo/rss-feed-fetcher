@@ -1,85 +1,139 @@
 import sqlite3
 
-class rss_feed_models:
-    def __init__(self):
-        pass
+from config import settings
 
-    @staticmethod
-    def check_table():
-        connection = sqlite3.connect('databases/rss_feed.db')
+
+class Database:
+    DATABASE_PATH = settings.DATABASE_PATH
+    NEW_FEEDS_TABLE = settings.NEW_TABLE_NAME
+    OLD_FEEDS_TABLE = settings.OLD_TABLE_NAME
+
+    def __init__(self):
+        self.connection = None
+
+    def get_connection(self):
+        if not self.connection or not self._is_connection_valid():
+            self.connection = sqlite3.connect(self.DATABASE_PATH)
+            return self.connection
+        return self.connection
+
+    def _is_connection_valid(self):
+        if self.connection:
+            try:
+                self.connection.execute('SELECT 1')
+                return True
+            except sqlite3.Error:
+                return False
+        return False
+
+    def close_connection(self):
+        if self.connection:
+            self.connection.close()
+            self.connection = None
+
+
+class RssFeedModel(Database):
+
+    def _create_tables(self, cursor):
+        cursor.execute(f'''
+            CREATE TABLE IF NOT EXISTS {self.NEW_FEEDS_TABLE} (
+                id INTEGER PRIMARY KEY,
+                title TEXT NOT NULL,
+                link TEXT NOT NULL
+            )
+        ''')
+        cursor.execute(f'''
+            CREATE TABLE IF NOT EXISTS {self.OLD_FEEDS_TABLE} (
+                id INTEGER PRIMARY KEY,
+                title TEXT NOT NULL,
+                link TEXT NOT NULL
+            )
+        ''')
+
+        return cursor
+
+    def check_table(self):
+        connection = self.get_connection()
         cursor = connection.cursor()
-        cursor.execute(f"SELECT name FROM sqlite_master WHERE type='table' AND name='new_rss_feeds'")
+        cursor.execute(f"SELECT name FROM sqlite_master WHERE type='table' AND name='{self.NEW_FEEDS_TABLE}'")
 
         if not cursor.fetchone():
             print("checking shit")
-            cursor.execute('''CREATE TABLE new_rss_feeds ( id INTEGER PRIMARY KEY, title TEXT NOT NULL, link TEXT NOT NULL)''')
-            print("new_rss_feeds table created")
-            cursor.execute('''CREATE TABLE old_rss_feeds ( id INTEGER PRIMARY KEY, title TEXT NOT NULL, link TEXT NOT NULL)''')
-            print("old_rss_feeds table created")
+            cursor.execute(
+                f'''CREATE TABLE {self.NEW_FEEDS_TABLE} ( id INTEGER PRIMARY
+                 KEY, title TEXT NOT NULL, link TEXT NOT NULL)'''
+            )
+            print(f"{self.NEW_FEEDS_TABLE} table created")
+            cursor.execute(
+                f'''CREATE TABLE {self.OLD_FEEDS_TABLE} ( id INTEGER PRIMARY
+                 KEY, title TEXT NOT NULL, link TEXT NOT NULL)'''
+            )
+            print(f"{self.OLD_FEEDS_TABLE} table created")
         else:
-            cursor.execute('''DELETE FROM old_rss_feeds''')
-            print("old_rss_feeds table deleted")
-            cursor.execute('''INSERT INTO old_rss_feeds (id, title, link) SELECT id, title, link FROM new_rss_feeds''')
-            print("old_rss_feeds table inserted")
-            cursor.execute('''DELETE FROM new_rss_feeds''')
-            print("new_rss_feeds table deleted")
+            cursor.execute(f'''DELETE FROM {self.OLD_FEEDS_TABLE}''')
+            print(f"{self.OLD_FEEDS_TABLE} table deleted")
+            cursor.execute(
+                f'''INSERT INTO {self.OLD_FEEDS_TABLE} (id, title, link)
+                 SELECT id, title, link FROM {self.NEW_FEEDS_TABLE}'''
+            )
+            print(f"{self.OLD_FEEDS_TABLE} table inserted")
+            cursor.execute(f'''DELETE FROM {self.NEW_FEEDS_TABLE}''')
+            print(f"{self.NEW_FEEDS_TABLE} table deleted")
         connection.commit()
         connection.close()
-    @staticmethod
-    def get_all():
-        connection = sqlite3.connect('databases/rss_feed.db')
-        cursor = connection.cursor()
-        cursor.execute(f"SELECT * FROM new_rss_feeds ORDER BY id DESC")
-        all_data = cursor.fetchall()
-        connection.commit()
-        connection.close()
-        return all_data
 
-    @staticmethod
-    def get_10_rows():
-        connection = sqlite3.connect('databases/rss_feed.db')
+    def create(self, dataset, limit: int = 10):
+        connection = self.get_connection()
         cursor = connection.cursor()
-        cursor.execute(f"SELECT * FROM new_rss_feeds LIMIT 0,10")
-        data = cursor.fetchall()
+
+        self._create_tables(cursor)
+
+        for index, data in enumerate(dataset[:limit]):
+            cursor.execute(
+                f'''INSERT INTO {self.NEW_FEEDS_TABLE} (title, link) VALUES (?, ?)''',
+                (data.title, data.links[0].href)
+            )
+
         connection.commit()
         connection.close()
+        print(f"{limit} data successfully inserted")
+
+    def get_all(self, limit=None):
+        connection = self.get_connection()
+        cursor = connection.cursor()
+
+        query = f"SELECT * FROM {self.NEW_FEEDS_TABLE} ORDER BY id DESC"
+
+        if limit:
+            query = f"{query} LIMIT 0, {limit}"
+
+        cursor.execute(query)
+
+        return cursor.fetchall()
+
+    def get_single(self, condition):
+        connection = self.get_connection()
+        cursor = connection.cursor()
+
+        query = f"SELECT * FROM {self.NEW_FEEDS_TABLE} WHERE {condition} ORDER BY id DESC LIMIT 1"
+        cursor.execute(query)
+
+        data = cursor.fetchone()
         return data
-
-
-    @staticmethod
-    def get_single():
-        pass
-    
-    @staticmethod
-    def create(datas):
-        connection = sqlite3.connect('databases/rss_feed.db')
-        cursor = connection.cursor()
-        count = 0
-        if len(datas):
-            for data in datas:
-                cursor.execute('''INSERT INTO new_rss_feeds (title, link) VALUES (?, ?)''', (data.title, data.links[0].href))
-                count += 1
-                if count == 10:
-                    break
-        connection.commit()
-        connection.close()
-        print("data successfully inserted")
 
     @staticmethod
     def update():
         pass
 
     @staticmethod
-    def check_for_new_data(link):
-        connection = sqlite3.connect('databases/rss_feed.db')
+    def delete():
+        pass
+
+    def check_for_new_data(self, link):
+        connection = self.get_connection()
         cursor = connection.cursor()
-        cursor.execute(f"SELECT * FROM old_rss_feeds WHERE old_rss_feeds.link='"+link+"'")
+        cursor.execute(f"SELECT * FROM {self.OLD_FEEDS_TABLE} WHERE {self.OLD_FEEDS_TABLE}.link='"+link+"'")
         all_data = cursor.fetchone()
         connection.commit()
         connection.close()
         return all_data
-
-    @staticmethod
-    def delete():
-        pass
-

@@ -1,7 +1,9 @@
-import tkinter as tk
 import sqlite3
 import webbrowser
+
+import tkinter as tk
 from tkinter import messagebox
+
 
 class RssReaderApp:
     def __init__(self, master):
