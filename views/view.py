@@ -7,6 +7,7 @@ from tkinter import messagebox
 
 from classes.rss_feed import rss_feed_class
 from classes.validation import Validation
+from classes.notification import Notification
 from config import settings
 from model.rss_feed_model import RssFeedModel
 
@@ -64,23 +65,23 @@ class View:
             rss_feed_model.check_table()
             rss_feed_model.create(rss_data, limit=self.initial_show_limit)
 
-            ic(interval_value)
-            ic(interval_unit)
-
             self.rss_feed_data = rss_feed_model.get_all(limit=self.initial_show_limit)
 
             self.listbox = tkinter.Listbox()
             self.listbox.place(x=20, y=190, width=750)
-
+            new_rss_feed_count = 0
             for index, feed_data in enumerate(self.rss_feed_data[:self.initial_show_limit]):
                 if not rss_feed_model.check_for_new_data(link=feed_data[2]):
-                    data_set = f"{str(feed_data[0])} - {feed_data[1]} (NEW)"
+                    data_set = f"{str(index + 1)} - {feed_data[1]} (NEW)"
+                    new_rss_feed_count = 1 + index
                 else:
                     data_set = f"{str(index + 1)} - {feed_data[1]}"
                 self.listbox.insert(tkinter.END, data_set)  # Assuming 'title' is in the second column
 
-            self.listbox.bind("<<ListboxSelect>>", self.on_select)
+            Notification.get_notification(new_rss_feed_count)
 
+            new_rss_feed_count = 0
+            self.listbox.bind("<<ListboxSelect>>", self.on_select)
             self.schedule_refresh(link_input, interval)
         except ValueError as e:
             # Display an error message when validation fails
