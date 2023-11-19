@@ -8,3 +8,4 @@ python-dotenv==1.0.0
 sgmllib3k==1.0.0
 tk==0.1.0
 tksheet==6.2.9
+icecream==2.1.3

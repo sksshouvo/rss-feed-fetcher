@@ -58,27 +58,21 @@ class RssFeedModel(Database):
         cursor.execute(f"SELECT name FROM sqlite_master WHERE type='table' AND name='{self.NEW_FEEDS_TABLE}'")
 
         if not cursor.fetchone():
-            print("checking shit")
             cursor.execute(
                 f'''CREATE TABLE {self.NEW_FEEDS_TABLE} ( id INTEGER PRIMARY
                  KEY, title TEXT NOT NULL, link TEXT NOT NULL)'''
             )
-            print(f"{self.NEW_FEEDS_TABLE} table created")
             cursor.execute(
                 f'''CREATE TABLE {self.OLD_FEEDS_TABLE} ( id INTEGER PRIMARY
                  KEY, title TEXT NOT NULL, link TEXT NOT NULL)'''
             )
-            print(f"{self.OLD_FEEDS_TABLE} table created")
         else:
             cursor.execute(f'''DELETE FROM {self.OLD_FEEDS_TABLE}''')
-            print(f"{self.OLD_FEEDS_TABLE} table deleted")
             cursor.execute(
                 f'''INSERT INTO {self.OLD_FEEDS_TABLE} (id, title, link)
                  SELECT id, title, link FROM {self.NEW_FEEDS_TABLE}'''
             )
-            print(f"{self.OLD_FEEDS_TABLE} table inserted")
             cursor.execute(f'''DELETE FROM {self.NEW_FEEDS_TABLE}''')
-            print(f"{self.NEW_FEEDS_TABLE} table deleted")
         connection.commit()
         connection.close()
 
@@ -96,7 +90,6 @@ class RssFeedModel(Database):
 
         connection.commit()
         connection.close()
-        print(f"{limit} data successfully inserted")
 
     def get_all(self, limit=None):
         connection = self.get_connection()

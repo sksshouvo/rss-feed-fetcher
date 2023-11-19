@@ -23,7 +23,7 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 cover/
-
+databases/
 # Django #
 *.log
 db.sqlite3
