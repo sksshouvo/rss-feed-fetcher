@@ -87,14 +87,14 @@ class View:
             for data in full_data_set:
                 self.listbox.insert(tkinter.END, data)
 
-            # notification_handler = NotificationHandler(self.root)
-            # notification_handler.handle_notifications(new_rss_feeds)
+            notification_handler = NotificationHandler(self.root)
+            notification_handler.handle_notifications(new_rss_feeds)
             # threading.Thread(target=notification_handler.handle_notifications, args=[new_rss_feeds])
 
             # lnh = LinuxNotificationHandler()
             # lnh.show_notification("Title", "NEw message")
 
-            Notification.get_notification(new_rss_feed_count)
+            # Notification.get_notification(new_rss_feed_count)
 
             new_rss_feed_count = 0
             self.listbox.bind("<<ListboxSelect>>", self.on_select)
