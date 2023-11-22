@@ -20,7 +20,7 @@ class NotificationHandler:
         self.app_window = app_window
 
     def get_driver(self):
-        if os.platform.startswith('linux'):
+        if sys.platform.startswith('linux'):
             return LinuxNotificationHandler
         else:
             return "winfows"
