@@ -23,7 +23,7 @@ class NotificationHandler:
         if sys.platform.startswith('linux'):
             return LinuxNotificationHandler
         else:
-            return "winfows"
+            raise OSError('Please develop a Notification Handler like ( LinuxNotificationHandler ) in classes.notifier')
 
     def make_notification(self, new_data):
         count = 0
