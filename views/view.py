@@ -2,14 +2,15 @@ import webbrowser
 
 import tkinter
 import tkinter.font as tkFont
-from icecream import ic
 from tkinter import messagebox
 
 from classes.rss_feed import rss_feed_class
 from classes.validation import Validation
-from classes.notification import Notification
 from config import settings
 from model.rss_feed_model import RssFeedModel
+from classes.notifier.test_notifications import LinuxNotificationHandler
+from classes.notifications import NotificationHandler
+import threading
 
 
 class View:
@@ -69,16 +70,31 @@ class View:
 
             self.listbox = tkinter.Listbox()
             self.listbox.place(x=20, y=190, width=750)
-            new_rss_feed_count = 0
-            for index, feed_data in enumerate(self.rss_feed_data[:self.initial_show_limit]):
+            new_rss_feeds = []
+            old_rss_feeds = []
+            # new_rss_feed_count = 0
+            for index, feed_data in enumerate(self.rss_feed_data[:self.initial_show_limit], start=1):
+                data_set = f"{index}\t -\t {feed_data[1]}"
                 if not rss_feed_model.check_for_new_data(link=feed_data[2]):
-                    data_set = f"{str(index + 1)} - {feed_data[1]} (NEW)"
+                    data_set += "  ( NEW )"
+                    new_rss_feeds.append(data_set)
                     new_rss_feed_count = 1 + index
                 else:
-                    data_set = f"{str(index + 1)} - {feed_data[1]}"
-                self.listbox.insert(tkinter.END, data_set)  # Assuming 'title' is in the second column
+                    old_rss_feeds.append(data_set)
 
-            Notification.get_notification(new_rss_feed_count)
+            full_data_set = new_rss_feeds + old_rss_feeds
+
+            for data in full_data_set:
+                self.listbox.insert(tkinter.END, data)
+
+            notification_handler = NotificationHandler(self.root)
+            notification_handler.handle_notifications(new_rss_feeds)
+            # threading.Thread(target=notification_handler.handle_notifications, args=[new_rss_feeds])
+
+            # lnh = LinuxNotificationHandler()
+            # lnh.show_notification("Title", "NEw message")
+
+            # Notification.get_notification(new_rss_feed_count)
 
             new_rss_feed_count = 0
             self.listbox.bind("<<ListboxSelect>>", self.on_select)
