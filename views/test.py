@@ -1,28 +1,12 @@
-import tkinter as tk
-from tksheet import Sheet
+import asyncio
+from desktop_notifier import DesktopNotifier
 
+notifier = DesktopNotifier()
 
-class demo(tk.Tk):
-    def __init__(self):
-        tk.Tk.__init__(self)
-        self.grid_columnconfigure(0, weight = 1)
-        self.grid_rowconfigure(0, weight = 1)
-        self.frame = tk.Frame(self)
-        self.frame.grid_columnconfigure(0, weight = 1)
-        self.frame.grid_rowconfigure(0, weight = 1)
-        self.sheet = Sheet(self.frame,
-                           data = [
-                                    [
-                                        f"Row {r}, Column {c}\nnewline1\nnewline2" 
-                                        for c in range(50)
-                                    ]
-                                for r in range(500)
-                                ]
-                            )
-        self.sheet.enable_bindings()
-        self.frame.grid(row = 0, column = 0, sticky = "nswe")
-        self.sheet.grid(row = 0, column = 0, sticky = "nswe")
+async def main():
+    n = await notifier.send(title="Hello world!", message="Sent from Python")
+    await asyncio.sleep(5)  # wait a bit before clearing notification
+    await notifier.clear(n)  # removes the notification
+    await notifier.clear_all()  # removes all notifications for this app
 
-
-app = demo()
-app.mainloop()
+asyncio.run(main())
