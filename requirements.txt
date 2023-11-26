@@ -11,3 +11,4 @@ tksheet==6.2.9
 icecream==2.1.3
 plyer==2.1.0
 playsound==1.3.0
+desktop-notifier==3.5.6
