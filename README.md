@@ -9,7 +9,6 @@ A simple CLI system for fetch feed from a Rss feed.
 - virtualenv or your favourite Python environment tool
 
 # Get Started
-
 - Clone the repository
 ```sh
 git clone git@github.com:sksshouvo/rssFeedFetcher.git
@@ -35,7 +34,6 @@ pip install -r requirements.txt
 ```sh
 python main.pyw
 ```
-
 # Branching Model
 
 We use a branching model similar to this site (https://nvie.com/posts/a-successful-git-branching-model/).
@@ -48,11 +46,9 @@ To publish any changes instead of direct push, create a **PR** to **develop**
 - hotfix-#.#.#
 - main
 
-
 ## NOTE : WE BELIEVE IN MAINTAINING STANDARD. 
 
 SO DON'T FORGET TO RUN AT LEAST ```flake8``` AND ```isort``` IN CHANGED FILE BEFORE ANY NEW COMMIT AND PULL REQUEST
-
 
 # Copyright
 
