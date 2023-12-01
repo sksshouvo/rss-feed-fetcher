@@ -25,6 +25,8 @@ class View:
         self.root = tkinter.Tk()
         self.rss_feed_data = []
         self.listbox = ""
+        self.notification_manager = Notification_Manager(background="white")
+        self.new_rss_feed_count = 0
 
     @staticmethod
     def on_validate_input(P):
@@ -52,7 +54,6 @@ class View:
     def start_action(self, link_input, interval):
         rss_feed_fetcher     = rss_feed_class()
         rss_feed_model       = RssFeedModel()
-        notification_manager = Notification_Manager(background="white")
         entry_text           = link_input.get()
         interval_value       = interval.get("value").get()
         interval_unit        = interval.get("unit").get()
@@ -71,23 +72,27 @@ class View:
             self.listbox.place(x=20, y=190, width=750)
             new_rss_feeds = []
             old_rss_feeds = []
-
+            
             for index, feed_data in enumerate(self.rss_feed_data[:self.initial_show_limit], start=1):
                 data_set = f"{index}\t -\t {feed_data[1]}"
                 if not rss_feed_model.check_for_new_data(link=feed_data[2]):
                     data_set += "  ( NEW )"
                     new_rss_feeds.append(data_set)
-                    new_rss_feed_count = 1 + index
+                    self.new_rss_feed_count = 1 + index
                 else:
+                    self.new_rss_feed_count = 0
                     old_rss_feeds.append(data_set)
 
             full_data_set = new_rss_feeds + old_rss_feeds
 
             for data in full_data_set:
                 self.listbox.insert(tkinter.END, data)
-            if (new_rss_feed_count):
-                notification_manager.info("New Notification!")
-            new_rss_feed_count = 0
+
+            if (self.new_rss_feed_count):
+                notification_text = f"New Notification!\n{self.new_rss_feed_count} new updates"
+                self.notification_manager.info(notification_text, font=None, width=20)
+                
+            self.new_rss_feed_count = 0
             self.listbox.bind("<<ListboxSelect>>", self.on_select)
             self.schedule_refresh(link_input, interval)
         except ValueError as e:
