@@ -286,12 +286,11 @@ if __name__ == "__main__":
 
         root.after(start_time, notify)
     
-    # create_notification(100, "this is a label")
-    # create_notification(2500, "this is another label")
-    # create_notification(5000, "this is the third label")
+    create_notification(100, "this is a label")
+    create_notification(2500, "this is another label")
+    create_notification(5000, "this is the third label")
 
-    # notification_manager.success("my succes message")
-    # notification_manager.warning("warning!")
-    # notification_manager.info("info!")
+    notification_manager.success("my succes message")
+    notification_manager.warning("warning!")
 
     root.mainloop()
