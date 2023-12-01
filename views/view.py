@@ -7,6 +7,7 @@ import threading
 import tkinter
 import tkinter.font as tkFont
 import webbrowser
+from classes.notification import Notification_Manager
 
 
 class View:
@@ -49,11 +50,12 @@ class View:
         self.stop_button.config(text="Stop", state="normal")
 
     def start_action(self, link_input, interval):
-        rss_feed_fetcher = rss_feed_class()
-        rss_feed_model = RssFeedModel()
-        entry_text = link_input.get()
-        interval_value = interval.get("value").get()
-        interval_unit = interval.get("unit").get()
+        rss_feed_fetcher     = rss_feed_class()
+        rss_feed_model       = RssFeedModel()
+        notification_manager = Notification_Manager(background="white")
+        entry_text           = link_input.get()
+        interval_value       = interval.get("value").get()
+        interval_unit        = interval.get("unit").get()
 
         try:
             # Attempt to validate the entry
@@ -83,7 +85,8 @@ class View:
 
             for data in full_data_set:
                 self.listbox.insert(tkinter.END, data)
-
+            if (new_rss_feed_count):
+                notification_manager.info("New Notification!")
             new_rss_feed_count = 0
             self.listbox.bind("<<ListboxSelect>>", self.on_select)
             self.schedule_refresh(link_input, interval)
