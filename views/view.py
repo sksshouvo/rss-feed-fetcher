@@ -8,6 +8,8 @@ import tkinter
 import tkinter.font as tkFont
 import webbrowser
 from classes.notification import Notification_Manager
+from functools import partial
+
 
 
 class View:
@@ -67,20 +69,19 @@ class View:
             rss_feed_model.create(rss_data, limit=self.initial_show_limit)
 
             self.rss_feed_data = rss_feed_model.get_all(limit=self.initial_show_limit)
-
             self.listbox = tkinter.Listbox()
             self.listbox.place(x=20, y=190, width=750)
             new_rss_feeds = []
             old_rss_feeds = []
-            
+            self.new_rss_feed_count = 0
+
             for index, feed_data in enumerate(self.rss_feed_data[:self.initial_show_limit], start=1):
                 data_set = f"{index}\t -\t {feed_data[1]}"
                 if not rss_feed_model.check_for_new_data(link=feed_data[2]):
                     data_set += "  ( NEW )"
                     new_rss_feeds.append(data_set)
-                    self.new_rss_feed_count = 1 + index
+                    self.new_rss_feed_count += 1
                 else:
-                    self.new_rss_feed_count = 0
                     old_rss_feeds.append(data_set)
 
             full_data_set = new_rss_feeds + old_rss_feeds
@@ -91,8 +92,7 @@ class View:
             if (self.new_rss_feed_count):
                 notification_text = f"New Notification!\n{self.new_rss_feed_count} new updates"
                 self.notification_manager.info(notification_text, font=None, width=20)
-                
-            self.new_rss_feed_count = 0
+
             self.listbox.bind("<<ListboxSelect>>", self.on_select)
             self.schedule_refresh(link_input, interval)
         except ValueError as e:
@@ -108,7 +108,7 @@ class View:
         interval_ms = self.calculate_interval_milliseconds(interval_value, interval_unit)
 
         # Schedule the refresh after the specified interval
-        self.interval_id = self.root.after(interval_ms, lambda: self.start_action(link_input, interval))
+        self.interval_id = self.root.after(interval_ms, partial(self.start_action, link_input, interval))
 
     @staticmethod
     def calculate_interval_milliseconds(interval_count, interval_unit):
