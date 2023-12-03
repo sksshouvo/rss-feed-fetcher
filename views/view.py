@@ -1,15 +1,14 @@
+from classes.notification import Notification_Manager
+from model.rss_feed_model import RssFeedModel
 from classes.rss_feed import rss_feed_class
 from classes.validation import Validation
-from config import settings
-from model.rss_feed_model import RssFeedModel
+from playsound import playsound
 from tkinter import messagebox
-import threading
-import tkinter
 import tkinter.font as tkFont
+from functools import partial
+from config import settings
 import webbrowser
-from classes.notification import Notification_Manager
-
-
+import tkinter
 class View:
     interval_id = None
 
@@ -25,6 +24,9 @@ class View:
         self.root = tkinter.Tk()
         self.rss_feed_data = []
         self.listbox = ""
+        self.notification_manager = Notification_Manager(background="white")
+        self.new_rss_feed_count = 0
+        self.sound_file_path = "./assets/sounds/notification_sound.wav" 
 
     @staticmethod
     def on_validate_input(P):
@@ -52,7 +54,6 @@ class View:
     def start_action(self, link_input, interval):
         rss_feed_fetcher     = rss_feed_class()
         rss_feed_model       = RssFeedModel()
-        notification_manager = Notification_Manager(background="white")
         entry_text           = link_input.get()
         interval_value       = interval.get("value").get()
         interval_unit        = interval.get("unit").get()
@@ -66,18 +67,18 @@ class View:
             rss_feed_model.create(rss_data, limit=self.initial_show_limit)
 
             self.rss_feed_data = rss_feed_model.get_all(limit=self.initial_show_limit)
-
             self.listbox = tkinter.Listbox()
             self.listbox.place(x=20, y=190, width=750)
             new_rss_feeds = []
             old_rss_feeds = []
+            self.new_rss_feed_count = 0
 
             for index, feed_data in enumerate(self.rss_feed_data[:self.initial_show_limit], start=1):
                 data_set = f"{index}\t -\t {feed_data[1]}"
                 if not rss_feed_model.check_for_new_data(link=feed_data[2]):
                     data_set += "  ( NEW )"
                     new_rss_feeds.append(data_set)
-                    new_rss_feed_count = 1 + index
+                    self.new_rss_feed_count += 1
                 else:
                     old_rss_feeds.append(data_set)
 
@@ -85,9 +86,12 @@ class View:
 
             for data in full_data_set:
                 self.listbox.insert(tkinter.END, data)
-            if (new_rss_feed_count):
-                notification_manager.info("New Notification!")
-            new_rss_feed_count = 0
+
+            if (self.new_rss_feed_count):
+                notification_text = f"New Notification!\n{self.new_rss_feed_count} new updates"
+                self.notification_manager.info(notification_text, font=None, width=20)
+                playsound(self.sound_file_path)
+
             self.listbox.bind("<<ListboxSelect>>", self.on_select)
             self.schedule_refresh(link_input, interval)
         except ValueError as e:
@@ -103,7 +107,7 @@ class View:
         interval_ms = self.calculate_interval_milliseconds(interval_value, interval_unit)
 
         # Schedule the refresh after the specified interval
-        self.interval_id = self.root.after(interval_ms, lambda: self.start_action(link_input, interval))
+        self.interval_id = self.root.after(interval_ms, partial(self.start_action, link_input, interval))
 
     @staticmethod
     def calculate_interval_milliseconds(interval_count, interval_unit):

@@ -246,7 +246,7 @@ class Notification_Manager(object):
             kwargs["wraplength"] = wraplength
 
         def builder(interior):            
-            Label(interior, **kwargs).pack()
+            tkinter.Label(interior, **kwargs).pack()
 
         return builder
 
@@ -293,5 +293,4 @@ if __name__ == "__main__":
     # notification_manager.success("my succes message")
     # notification_manager.warning("warning!")
     # notification_manager.info("info!")
-
     root.mainloop()
