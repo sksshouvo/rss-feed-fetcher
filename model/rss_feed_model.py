@@ -95,7 +95,7 @@ class RssFeedModel(Database):
         connection = self.get_connection()
         cursor = connection.cursor()
 
-        query = f"SELECT * FROM {self.NEW_FEEDS_TABLE} ORDER BY id DESC"
+        query = f"SELECT * FROM {self.NEW_FEEDS_TABLE} ORDER BY id ASC"
 
         if limit:
             query = f"{query} LIMIT 0, {limit}"

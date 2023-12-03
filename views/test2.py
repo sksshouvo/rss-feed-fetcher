@@ -5,6 +5,7 @@ import tkinter as tk
 from tkinter import messagebox
 
 
+
 class RssReaderApp:
     def __init__(self, master):
         self.master = master

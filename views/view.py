@@ -1,17 +1,14 @@
-import webbrowser
-
-import tkinter
-import tkinter.font as tkFont
-from icecream import ic
-from tkinter import messagebox
-
+from classes.notification import Notification_Manager
+from model.rss_feed_model import RssFeedModel
 from classes.rss_feed import rss_feed_class
 from classes.validation import Validation
-from classes.notification import Notification
+from playsound import playsound
+from tkinter import messagebox
+import tkinter.font as tkFont
+from functools import partial
 from config import settings
-from model.rss_feed_model import RssFeedModel
-
-
+import webbrowser
+import tkinter
 class View:
     interval_id = None
 
@@ -27,6 +24,9 @@ class View:
         self.root = tkinter.Tk()
         self.rss_feed_data = []
         self.listbox = ""
+        self.notification_manager = Notification_Manager(background="white")
+        self.new_rss_feed_count = 0
+        self.sound_file_path = "./assets/sounds/notification_sound.wav" 
 
     @staticmethod
     def on_validate_input(P):
@@ -45,17 +45,18 @@ class View:
                 webbrowser.open_new_tab(link)
 
     def on_start_button_click(self, link_input, interval):
+
+        self.start_action(link_input, interval)
+        
         self.start_button.config(text="Running", state="disabled")
         self.stop_button.config(text="Stop", state="normal")
 
-        self.start_action(link_input, interval)
-
     def start_action(self, link_input, interval):
-        rss_feed_fetcher = rss_feed_class()
-        rss_feed_model = RssFeedModel()
-        entry_text = link_input.get()
-        interval_value = interval.get("value").get()
-        interval_unit = interval.get("unit").get()
+        rss_feed_fetcher     = rss_feed_class()
+        rss_feed_model       = RssFeedModel()
+        entry_text           = link_input.get()
+        interval_value       = interval.get("value").get()
+        interval_unit        = interval.get("unit").get()
 
         try:
             # Attempt to validate the entry
@@ -66,21 +67,31 @@ class View:
             rss_feed_model.create(rss_data, limit=self.initial_show_limit)
 
             self.rss_feed_data = rss_feed_model.get_all(limit=self.initial_show_limit)
-
             self.listbox = tkinter.Listbox()
             self.listbox.place(x=20, y=190, width=750)
-            new_rss_feed_count = 0
-            for index, feed_data in enumerate(self.rss_feed_data[:self.initial_show_limit]):
+            new_rss_feeds = []
+            old_rss_feeds = []
+            self.new_rss_feed_count = 0
+
+            for index, feed_data in enumerate(self.rss_feed_data[:self.initial_show_limit], start=1):
+                data_set = f"{index}\t -\t {feed_data[1]}"
                 if not rss_feed_model.check_for_new_data(link=feed_data[2]):
-                    data_set = f"{str(index + 1)} - {feed_data[1]} (NEW)"
-                    new_rss_feed_count = 1 + index
+                    data_set += "  ( NEW )"
+                    new_rss_feeds.append(data_set)
+                    self.new_rss_feed_count += 1
                 else:
-                    data_set = f"{str(index + 1)} - {feed_data[1]}"
-                self.listbox.insert(tkinter.END, data_set)  # Assuming 'title' is in the second column
+                    old_rss_feeds.append(data_set)
 
-            Notification.get_notification(new_rss_feed_count)
+            full_data_set = new_rss_feeds + old_rss_feeds
 
-            new_rss_feed_count = 0
+            for data in full_data_set:
+                self.listbox.insert(tkinter.END, data)
+
+            if (self.new_rss_feed_count):
+                notification_text = f"New Notification!\n{self.new_rss_feed_count} new updates"
+                self.notification_manager.info(notification_text, font=None, width=20)
+                playsound(self.sound_file_path)
+
             self.listbox.bind("<<ListboxSelect>>", self.on_select)
             self.schedule_refresh(link_input, interval)
         except ValueError as e:
@@ -96,7 +107,7 @@ class View:
         interval_ms = self.calculate_interval_milliseconds(interval_value, interval_unit)
 
         # Schedule the refresh after the specified interval
-        self.interval_id = self.root.after(interval_ms, lambda: self.start_action(link_input, interval))
+        self.interval_id = self.root.after(interval_ms, partial(self.start_action, link_input, interval))
 
     @staticmethod
     def calculate_interval_milliseconds(interval_count, interval_unit):
