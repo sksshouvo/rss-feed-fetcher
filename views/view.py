@@ -1,15 +1,14 @@
+from classes.notification import Notification_Manager
+from model.rss_feed_model import RssFeedModel
 from classes.rss_feed import rss_feed_class
 from classes.validation import Validation
-from config import settings
-from model.rss_feed_model import RssFeedModel
+from playsound import playsound
 from tkinter import messagebox
-import threading
-import tkinter
 import tkinter.font as tkFont
-import webbrowser
-from classes.notification import Notification_Manager
 from functools import partial
-
+from config import settings
+import webbrowser
+import tkinter
 class View:
     interval_id = None
 
@@ -27,6 +26,7 @@ class View:
         self.listbox = ""
         self.notification_manager = Notification_Manager(background="white")
         self.new_rss_feed_count = 0
+        self.sound_file_path = "./assets/sounds/notification_sound.wav" 
 
     @staticmethod
     def on_validate_input(P):
@@ -90,6 +90,7 @@ class View:
             if (self.new_rss_feed_count):
                 notification_text = f"New Notification!\n{self.new_rss_feed_count} new updates"
                 self.notification_manager.info(notification_text, font=None, width=20)
+                playsound(self.sound_file_path)
 
             self.listbox.bind("<<ListboxSelect>>", self.on_select)
             self.schedule_refresh(link_input, interval)
