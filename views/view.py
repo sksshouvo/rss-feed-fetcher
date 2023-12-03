@@ -10,8 +10,6 @@ import webbrowser
 from classes.notification import Notification_Manager
 from functools import partial
 
-
-
 class View:
     interval_id = None
 
