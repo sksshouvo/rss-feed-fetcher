@@ -24,6 +24,7 @@ coverage.xml
 .pytest_cache/
 cover/
 databases/
+databases/rss_feed.db
 # Django #
 *.log
 db.sqlite3
