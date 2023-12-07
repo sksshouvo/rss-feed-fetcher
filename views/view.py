@@ -12,12 +12,7 @@ import tkinter
 class View:
     interval_id = None
 
-    def __init__(
-        self,
-        app_name=settings.APP_NAME,
-        favicon_path=settings.FAVICON_PATH,
-        initial_show_limit=settings.INITIAL_SHOW_LIMIT
-    ):
+    def __init__(self, app_name=settings.APP_NAME, favicon_path=settings.FAVICON_PATH, initial_show_limit=settings.INITIAL_SHOW_LIMIT):
         self.favicon_path = favicon_path
         self.app_name = app_name
         self.initial_show_limit = initial_show_limit
