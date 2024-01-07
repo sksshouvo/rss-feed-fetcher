@@ -1,3 +1,6 @@
+from model.rss_feed_model import RssFeedModel
+from classes.rss_feed import rss_feed_class
+from classes.validation import Validation
 from views.view import View
 
 class RssFeedController:
@@ -5,14 +8,20 @@ class RssFeedController:
 
     def __init__(self):
         self.init_view = View()
+        self.rss_feed_fetcher = rss_feed_class()
+        self.rss_feed_model = RssFeedModel()
         pass
 
     def index(self):
         self.init_view.exe_func()
         pass
 
-    def store(self):
+    def store(self, entry_text, interval_value):
         # this will store rss feeds from rss feed link.
+        Validation.validate_entry(entry_text)
+        Validation.validate_interval_count(interval_value)
+        self.rss_feed_model.check_table()
+        self.rss_feed_model.create(rss_data, limit=self.initial_show_limit)
         pass
 
     def show(self):
