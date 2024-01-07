@@ -110,7 +110,6 @@ class View:
         # unit = interval_unit_input.get()
 
         interval_mapping = {
-            "SEC": 1000,  # Convert seconds to milliseconds
             "MIN": 60 * 1000,  # Convert minutes to milliseconds
             "HOUR": 60 * 60 * 1000,  # Convert hours to milliseconds
             "DAYS": 24 * 60 * 60 * 1000,  # Convert days to milliseconds
@@ -132,7 +131,6 @@ class View:
     def exe_func(self):
 
         img = tkinter.PhotoImage(file=self.favicon_path)
-
         fontObj = tkFont.Font(size=15)
         self.root.iconphoto(False, img)
         self.root.title(self.app_name)
