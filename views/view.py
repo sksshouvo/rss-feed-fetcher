@@ -1,7 +1,5 @@
+from controller.RssFeedController import RssFeedController
 from classes.notification import Notification_Manager
-from model.rss_feed_model import RssFeedModel
-from classes.rss_feed import rss_feed_class
-from classes.validation import Validation
 from playsound import playsound
 from tkinter import messagebox
 import tkinter.font as tkFont
@@ -22,6 +20,7 @@ class View:
         self.notification_manager = Notification_Manager(background="white")
         self.new_rss_feed_count = 0
         self.sound_file_path = "./assets/sounds/notification_sound.wav" 
+        self.rss_feed_controller = RssFeedController()
 
     @staticmethod
     def on_validate_input(P):
@@ -47,51 +46,34 @@ class View:
         self.stop_button.config(text="Stop", state="normal")
 
     def start_action(self, link_input, interval):
-        rss_feed_fetcher     = rss_feed_class()
-        rss_feed_model       = RssFeedModel()
-        entry_text           = link_input.get()
-        interval_value       = interval.get("value").get()
-        interval_unit        = interval.get("unit").get()
-        Validation.validate_entry(entry_text)
-        Validation.validate_interval_count(interval_value)
-        rss_data = rss_feed_fetcher.fetch_rss_feed(entry_text)
-        
-        try:
-            # Attempt to validate the entry
-            if (rss_data):
-                rss_feed_model.check_table()
-                rss_feed_model.create(rss_data, limit=self.initial_show_limit)
-                self.rss_feed_data = rss_feed_model.get_all(limit=self.initial_show_limit)
-                self.listbox = tkinter.Listbox()
-                self.listbox.place(x=20, y=190, width=750)
-                new_rss_feeds = []
-                old_rss_feeds = []
-                self.new_rss_feed_count = 0
+        self.rss_feed_data = self.rss_feed_controller.store(link_input, interval)
+        self.listbox = tkinter.Listbox()
+        self.listbox.place(x=20, y=190, width=750)
+        new_rss_feeds = []
+        old_rss_feeds = []
+        self.new_rss_feed_count = 0
 
-                for index, feed_data in enumerate(self.rss_feed_data[:self.initial_show_limit], start=1):
-                    data_set = f"{index}\t -\t {feed_data[1]}"
-                    if not rss_feed_model.check_for_new_data(link=feed_data[2]):
-                        data_set += "  ( NEW )"
-                        new_rss_feeds.append(data_set)
-                        self.new_rss_feed_count += 1
-                    else:
-                        old_rss_feeds.append(data_set)
+        for index, feed_data in enumerate(self.rss_feed_data[:self.initial_show_limit], start=1):
+            data_set = f"{index}\t -\t {feed_data[1]}"
+            if not rss_feed_model.check_for_new_data(link=feed_data[2]):
+                data_set += "  ( NEW )"
+                new_rss_feeds.append(data_set)
+                self.new_rss_feed_count += 1
+            else:
+                old_rss_feeds.append(data_set)
 
-                full_data_set = new_rss_feeds + old_rss_feeds
+        full_data_set = new_rss_feeds + old_rss_feeds
 
-                for data in full_data_set:
-                    self.listbox.insert(tkinter.END, data)
+        for data in full_data_set:
+            self.listbox.insert(tkinter.END, data)
 
-                if (self.new_rss_feed_count):
-                    notification_text = f"New Notification!\n{self.new_rss_feed_count} new updates"
-                    self.notification_manager.info(notification_text, font=None, width=20)
-                    playsound(self.sound_file_path)
+        if (self.new_rss_feed_count):
+            notification_text = f"New Notification!\n{self.new_rss_feed_count} new updates"
+            self.notification_manager.info(notification_text, font=None, width=20)
+            playsound(self.sound_file_path)
 
-                self.listbox.bind("<<ListboxSelect>>", self.on_select)
-                self.schedule_refresh(link_input, interval)
-        except ValueError as e:
-            # Display an error message when validation fails
-            messagebox.showerror("Error", str(e))
+        self.listbox.bind("<<ListboxSelect>>", self.on_select)
+        self.schedule_refresh(link_input, interval)
 
     def schedule_refresh(self, link_input, interval: dict):
         # Get the interval value and unit
