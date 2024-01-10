@@ -1,5 +1,4 @@
 from views.view import View
-
-if __name__ == "__main__":
-    app = View()
-    app.exe_func()
+x = View()
+if __name__ == '__main__':
+    x.exe_func()
