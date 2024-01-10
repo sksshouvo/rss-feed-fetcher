@@ -1,5 +1,4 @@
-from controller.RssFeedController import RssFeedController
-
-if __name__ == "__main__":
-    app = RssFeedController()
-    app.index()
+from views.view import View
+x = View()
+if __name__ == '__main__':
+    x.exe_func()

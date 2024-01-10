@@ -19,62 +19,62 @@ class View:
         self.listbox = ""
         self.notification_manager = Notification_Manager(background="white")
         self.new_rss_feed_count = 0
-        self.sound_file_path = "./assets/sounds/notification_sound.wav" 
+        self.sound_file_path = "./assets/sounds/notification_sound.wav"
         self.rss_feed_controller = RssFeedController()
-
     @staticmethod
     def on_validate_input(P):
         # This function is called when the Entry widget is modified
         # Check if the input is a valid number with a maximum length of 2
         return P.isdigit() and len(P) <= 2
-
     def on_select(self, event):
         selected_index = self.listbox.curselection()
         if selected_index:
-            selected_item = self.listbox.get(selected_index)
             link = self.rss_feed_data[selected_index[0]][2]  # Assuming 'link' is in the third column
             confirmation = messagebox.askyesno("Confirmation", f"Do you want to open the link:\n{link}?")
             if confirmation:
                 # Open the link in the default web browser
                 webbrowser.open_new_tab(link)
-
     def on_start_button_click(self, link_input, interval):
-
-        self.start_action(link_input, interval)
-        
-        self.start_button.config(text="Running", state="disabled")
-        self.stop_button.config(text="Stop", state="normal")
-
+        check_engine = self.start_action(link_input, interval)
+        if not check_engine:
+            return False
+        else:
+            self.start_button.config(text="Running", state="disabled")
+            self.stop_button.config(text="Stop", state="normal")
+            return True
     def start_action(self, link_input, interval):
-        self.rss_feed_data = self.rss_feed_controller.store(link_input, interval)
-        self.listbox = tkinter.Listbox()
-        self.listbox.place(x=20, y=190, width=750)
         new_rss_feeds = []
         old_rss_feeds = []
         self.new_rss_feed_count = 0
+        self.rss_feed_data = self.rss_feed_controller.store(link_input, interval)
+        if not self.rss_feed_data:
+            return self.rss_feed_data
+        else:
+            self.listbox = tkinter.Listbox()
+            self.listbox.place(x=20, y=190, width=750)
 
-        for index, feed_data in enumerate(self.rss_feed_data[:self.initial_show_limit], start=1):
-            data_set = f"{index}\t -\t {feed_data[1]}"
-            if not rss_feed_model.check_for_new_data(link=feed_data[2]):
-                data_set += "  ( NEW )"
-                new_rss_feeds.append(data_set)
-                self.new_rss_feed_count += 1
-            else:
-                old_rss_feeds.append(data_set)
+            for index, feed_data in enumerate(self.rss_feed_data[:self.initial_show_limit], start=1):
+                data_set = f"{index}\t -\t {feed_data[1]}"
+                if not self.rss_feed_controller.check_new_data(link=feed_data[2]):
+                    data_set += "  ( NEW )"
+                    new_rss_feeds.append(data_set)
+                    self.new_rss_feed_count += 1
+                else:
+                    old_rss_feeds.append(data_set)
 
-        full_data_set = new_rss_feeds + old_rss_feeds
+            full_data_set = new_rss_feeds + old_rss_feeds
 
-        for data in full_data_set:
-            self.listbox.insert(tkinter.END, data)
+            for data in full_data_set:
+                self.listbox.insert(tkinter.END, data)
 
-        if (self.new_rss_feed_count):
-            notification_text = f"New Notification!\n{self.new_rss_feed_count} new updates"
-            self.notification_manager.info(notification_text, font=None, width=20)
-            playsound(self.sound_file_path)
+            if (self.new_rss_feed_count):
+                notification_text = f"New Notification!\n{self.new_rss_feed_count} new updates"
+                self.notification_manager.info(notification_text, font=None, width=20)
+                playsound(self.sound_file_path)
 
-        self.listbox.bind("<<ListboxSelect>>", self.on_select)
-        self.schedule_refresh(link_input, interval)
-
+            self.listbox.bind("<<ListboxSelect>>", self.on_select)
+            self.schedule_refresh(link_input, interval)
+            return True
     def schedule_refresh(self, link_input, interval: dict):
         # Get the interval value and unit
         interval_value = int(interval.get("value").get())
@@ -85,12 +85,10 @@ class View:
 
         # Schedule the refresh after the specified interval
         self.interval_id = self.root.after(interval_ms, partial(self.start_action, link_input, interval))
-
     @staticmethod
     def calculate_interval_milliseconds(interval_count, interval_unit):
         # value = interval_count_input.get()
         # unit = interval_unit_input.get()
-
         interval_mapping = {
             "MIN": 60 * 1000,  # Convert minutes to milliseconds
             "HOUR": 60 * 60 * 1000,  # Convert hours to milliseconds
@@ -98,20 +96,16 @@ class View:
             "MONTH": 30 * 24 * 60 * 60 * 1000  # Approximate month to milliseconds (adjust as needed)
         }
         return interval_count * interval_mapping[interval_unit]
-
     def stop_action(self):
         if self.interval_id:
             self.root.after_cancel(self.interval_id)
             self.interval_id = None  # Reset the interval ID
-
     def on_stop_button_click(self):
         # Call the stop_action method when the "Stop" button is clicked
         self.stop_action()
         self.start_button.config(text="Start", state="normal")
         self.stop_button.config(text="Stopped", state="disabled")
-
     def exe_func(self):
-
         img = tkinter.PhotoImage(file=self.favicon_path)
         fontObj = tkFont.Font(size=15)
         self.root.iconphoto(False, img)
@@ -157,7 +151,6 @@ class View:
             validate="key",
             validatecommand=(validate_input, "%P")
         )
-
         # Dropdown menu options
         options = [
             "MIN",
@@ -165,22 +158,18 @@ class View:
             "DAYS",
             "MONTH"
         ]
-
         # datatype of menu text
         clicked = tkinter.StringVar()
 
         # initial menu text
         clicked.set("MIN")
-
         # Create Dropdown menu
         interval = tkinter.OptionMenu(self.root, clicked, *options)
         interval.place(x=160, y=75)
-
         interval_period = dict(
             value=interval_count_input,
             unit=clicked,
         )
-
         # start button
         start_button = tkinter.Button(
             self.root,
@@ -188,16 +177,13 @@ class View:
             command=lambda link=link_input, interval_period=interval_period: self.on_start_button_click(link, interval_period)
         )
         start_button.place(x=625, y=75, width=70, height=30)
-
         self.start_button = start_button
-
         # start button
         stop_button = tkinter.Button(
             self.root,
             text="Stop",
             command=self.on_stop_button_click
         )
-        
         stop_button.place(x=700, y=75, width=70, height=30)
         self.stop_button = stop_button
         # Code to add widgets will go here...
