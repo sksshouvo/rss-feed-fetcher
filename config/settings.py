@@ -9,4 +9,8 @@ DATABASE_PATH      = os.environ.get("DATABASE_PATH", "databases/rss_feed.db")
 NEW_TABLE_NAME     = os.environ.get("NEW_TABLE_NAME", "new_rss_feeds")
 OLD_TABLE_NAME     = os.environ.get("OLD_TABLE_NAME", "old_rss_feeds")
 INITIAL_SHOW_LIMIT = int(os.environ.get("INITIAL_SHOW_LIMIT", 10))
-NOTIFICATION_SOUND_PATH = os.environ.get("NOTIFICATION_SOUND_PATH", "assets/sounds/default_notifications.mp3")
+NOTIFICATION_SOUND_PATH = os.environ.get(
+    "NOTIFICATION_SOUND_PATH",
+    "assets/sounds/default_notifications.mp3"
+)
+BASE_API_URI = os.environ.get("BASE_API_URI", "http://localhost:8000/api")
