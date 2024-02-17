@@ -3,6 +3,7 @@ import re
 import ttkbootstrap as ttk
 import tkinter as tk
 from abc import ABC
+from config.settings import AUTH_PASSWORD_VALIDATORS
 
 
 class Authentication(ABC):
@@ -10,8 +11,10 @@ class Authentication(ABC):
     def on_entry_focus_in(self, event):
         # if event.widget.get() == self.email_placeholder or event.widget.get() == self.password_placeholder:
         event.widget.delete(0, tk.END)
-        if event.widget == self.password_entry or event.widget == \
-                self.confirm_password_entry:
+        if event.widget == self.password_entry or (
+                        hasattr(self, 'confirm_password_entry') and
+                        event.widget == self.confirm_password_entry
+        ):
             event.widget.config(show='*')
 
     def on_entry_focus_out(self, event):
@@ -254,12 +257,18 @@ class RegistrationView(Authentication):
             )
             return
         if not self.validate_password(password):
-            messagebox.showerror(
-                'Invalid Password',
-                'Password must be at least 8 characters long, '
-                'contain a capital and a lower case letter, a symbol, '
-                'and a number.'
-            )
+            for validator in AUTH_PASSWORD_VALIDATORS:
+                validator = validator()
+                result = validator.validate(password, messagebox)
+                if not result:
+                    break
+
+            # messagebox.showerror(
+            #     'Invalid Password',
+            #     'Password must be at least 8 characters long, '
+            #     'contain a capital and a lower case letter, a symbol, '
+            #     'and a number.'
+            # )
             return
         if password != confirm_password:
             messagebox.showerror(

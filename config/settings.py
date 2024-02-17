@@ -1,6 +1,8 @@
 import os
 from dotenv import load_dotenv
 
+import classes.validation
+
 load_dotenv()
 
 APP_NAME           = os.environ.get("APP_NAME", "Rss Feed Fetcher")
@@ -10,3 +12,10 @@ NEW_TABLE_NAME     = os.environ.get("NEW_TABLE_NAME", "new_rss_feeds")
 OLD_TABLE_NAME     = os.environ.get("OLD_TABLE_NAME", "old_rss_feeds")
 INITIAL_SHOW_LIMIT = int(os.environ.get("INITIAL_SHOW_LIMIT", 10))
 NOTIFICATION_SOUND_PATH = os.environ.get("NOTIFICATION_SOUND_PATH", "assets/sounds/default_notifications.mp3")
+
+
+AUTH_PASSWORD_VALIDATORS = [
+    classes.validation.CommonPasswordValidator,
+    classes.validation.MinimumLengthValidator,
+    classes.validation.NumericPasswordValidator
+]
