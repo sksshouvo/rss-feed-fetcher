@@ -1,4 +1,6 @@
-from views.view import View
-x = View()
+from controller.auth import MasterController
+
+
 if __name__ == '__main__':
-    x.exe_func()
+    master_controller = MasterController()
+    master_controller.exec()

@@ -9,6 +9,8 @@ __pycache__/
 
 uploads/
 
+RssFeedFetcher.postman_collection.json
+
 # Unit test / coverage reports
 htmlcov/
 .tox/

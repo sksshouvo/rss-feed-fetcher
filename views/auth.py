@@ -1,9 +1,12 @@
-from tkinter import messagebox
+import requests
+import json
 import re
-import ttkbootstrap as ttk
 import tkinter as tk
+import ttkbootstrap as ttk
 from abc import ABC
 from config.settings import AUTH_PASSWORD_VALIDATORS
+from config.settings import API_BASE_URI
+from tkinter import messagebox
 
 
 class Authentication(ABC):
@@ -51,11 +54,14 @@ class Authentication(ABC):
         field.pack(pady=(0, 10))
         # self.email_entry.pack(pady=(0, 10))
 
+
 class LoginView(Authentication):
-    def __init__(self, master=None):
+    def __init__(self, controller, on_login_success, master=None):
         if not master:
             master = ttk.Window(themename='litera')
         self.master = master
+        self.controller = controller
+        self.on_login_success = on_login_success
         self.initialize_login_view()
 
     def initialize_login_view(self):
@@ -122,8 +128,8 @@ class LoginView(Authentication):
         self.register_button.pack(pady=(10, 20))
 
     def login(self):
-        email = self.email_entry.get()
-        password = self.password_entry.get()
+        email = self.email_entry.get().strip()
+        password = self.password_entry.get().strip()
 
         # Validation
         if not self.validate_email(email):
@@ -137,10 +143,21 @@ class LoginView(Authentication):
 
         #ToDo : Actual Login Logic and API call goes here
 
-        messagebox.showinfo(
-            'Login Attempt',
-            f'Email: {email}Password: {password}'
+        payload = dict(
+            email=email,
+            password=password
         )
+        url = f'{API_BASE_URI}login/'
+        resp = requests.post(url, data=json.dumps(payload))
+        if resp.status_code == 401:
+            messagebox.showinfo(
+                'Login Attempt : ',
+                'No Active account with this creds! Maybe you need to register'
+            )
+        else:
+            if self.controller and self.on_login_success:
+                self.on_login_success(resp.json())
+                self.master.destroy()
 
     def validate_email(self, email):
         if email and re.match(r'^\S+@\S+\.\S+$', email):
@@ -151,12 +168,18 @@ class LoginView(Authentication):
         return bool(password)
 
     def switch_to_register(self):
-        self.registration_view = RegistrationView(self.master)
+        self.registration_view = RegistrationView(
+            master=self.master,
+            controller=self.controller,
+            on_login_success=self.on_login_success
+        )
 
 
 class RegistrationView(Authentication):
-    def __init__(self, master):
+    def __init__(self, master, controller, on_login_success):
         self.master = master
+        self.controller = controller
+        self.on_login_success = on_login_success
         self.initialize_registration_view()
 
     def initialize_registration_view(self):
@@ -217,7 +240,7 @@ class RegistrationView(Authentication):
         self.login_button.pack(pady=(5, 20))
 
     def validate_name(self, name):
-        if not name or name.isdigit() or not name.isalpha():
+        if not name or not any(char.isalpha() for char in name):
             return False
         return True
 
@@ -238,10 +261,10 @@ class RegistrationView(Authentication):
         return False
 
     def register(self):
-        name = self.name_entry.get()
-        email = self.email_entry.get()
-        password = self.password_entry.get()
-        confirm_password = self.confirm_password_entry.get()
+        name = self.name_entry.get().strip()
+        email = self.email_entry.get().strip()
+        password = self.password_entry.get().strip()
+        confirm_password = self.confirm_password_entry.get().strip()
 
         # Validation
         if not self.validate_name(name):
@@ -262,13 +285,6 @@ class RegistrationView(Authentication):
                 result = validator.validate(password, messagebox)
                 if not result:
                     break
-
-            # messagebox.showerror(
-            #     'Invalid Password',
-            #     'Password must be at least 8 characters long, '
-            #     'contain a capital and a lower case letter, a symbol, '
-            #     'and a number.'
-            # )
             return
         if password != confirm_password:
             messagebox.showerror(
@@ -278,17 +294,35 @@ class RegistrationView(Authentication):
             return
 
         # ToDo :  Actual Register Logic and API calls goes here
-
-        messagebox.showinfo(
-            'Register Attempt',
-            'Registration logic goes here.'
+        payload = dict(
+            email=email,
+            password=password,
+            first_name=name.split(' ')[0],
+            last_name=name.split(' ')[-1]
         )
+        url = f'{API_BASE_URI}register/'
+        resp = requests.post(url, data=json.dumps(payload))
+
+        if resp.status_code == 201:
+            if self.controller and self.on_login_success:
+                self.on_login_success(resp.json().get("data"))
+                print("hello  worlds")
+                self.master.destroy()
+        else:
+            messagebox.showinfo(
+                'Register Attempt Failed!',
+                resp.json().get("detail")
+            )
 
     def switch_to_login(self):
-        self.login_view = LoginView(self.master)
+        self.login_view = LoginView(
+            controller=self.controller,
+            on_login_success=self.on_login_success,
+            master=self.master
+        )
 
 
-if __name__ == "__main__":
-    root = ttk.Window(themename='litera')
-    login_view = LoginView(root)
-    root.mainloop()
+# if __name__ == "__main__":
+#     root = ttk.Window(themename='litera')
+#     login_view = LoginView(root)
+#     root.mainloop()
