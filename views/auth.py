@@ -54,17 +54,24 @@ class Authentication(ABC):
         field.pack(pady=(0, 10))
         # self.email_entry.pack(pady=(0, 10))
 
+    def destroy_view(self):
+        for widget in self.master.winfo_children():
+            widget.destroy()
+
+    def on_window_close(self):
+        self.master.destroy()
+
 
 class LoginView(Authentication):
-    def __init__(self, controller, on_login_success, master=None):
+    def __init__(self, on_login_success, master=None):
         if not master:
-            master = ttk.Window(themename='litera')
+            master = tk.Tk()
+            master.title('Login - Rss Feed Fetcher')
         self.master = master
-        self.controller = controller
         self.on_login_success = on_login_success
-        self.initialize_login_view()
+        self.master.protocol("WM_DELETE_WINDOW", self.on_window_close)
 
-    def initialize_login_view(self):
+    def exec_function(self):
         for widget in self.master.winfo_children():
             widget.destroy()
 
@@ -86,7 +93,7 @@ class LoginView(Authentication):
         self.outer_frame.pack(padx=20, pady=10)
 
         self.frame = ttk.Frame(self.outer_frame)
-        self.frame.pack(padx=20, pady=20)
+        self.frame.pack(padx=100, pady=100)
 
         self.title = ttk.Label(
             self.frame,
@@ -126,6 +133,7 @@ class LoginView(Authentication):
             width=16
         )
         self.register_button.pack(pady=(10, 20))
+        self.master.mainloop()
 
     def login(self):
         email = self.email_entry.get().strip()
@@ -141,23 +149,24 @@ class LoginView(Authentication):
                                  'Password cannot be empty.')
             return
 
-        #ToDo : Actual Login Logic and API call goes here
-
         payload = dict(
             email=email,
             password=password
         )
-        url = f'{API_BASE_URI}login/'
-        resp = requests.post(url, data=json.dumps(payload))
-        if resp.status_code == 401:
+        url = f'{API_BASE_URI}public/authenticaion/login'
+        resp = requests.post(
+            url,
+            data=payload,
+            headers={"Accept": "application/json"}
+        )
+        if not resp.status_code == 200:
             messagebox.showinfo(
-                'Login Attempt : ',
-                'No Active account with this creds! Maybe you need to register'
+                title='Login Attempt Failed!',
+                message=resp.json().get("message")
             )
         else:
-            if self.controller and self.on_login_success:
-                self.on_login_success(resp.json())
-                self.master.destroy()
+            if self.on_login_success:
+                self.on_login_success(resp.json().get("token"))
 
     def validate_email(self, email):
         if email and re.match(r'^\S+@\S+\.\S+$', email):
@@ -170,17 +179,16 @@ class LoginView(Authentication):
     def switch_to_register(self):
         self.registration_view = RegistrationView(
             master=self.master,
-            controller=self.controller,
             on_login_success=self.on_login_success
         )
 
 
 class RegistrationView(Authentication):
-    def __init__(self, master, controller, on_login_success):
+    def __init__(self, master, on_login_success):
         self.master = master
-        self.controller = controller
         self.on_login_success = on_login_success
         self.initialize_registration_view()
+        self.master.protocol("WM_DELETE_WINDOW", self.on_window_close)
 
     def initialize_registration_view(self):
         for widget in self.master.winfo_children():
@@ -204,7 +212,7 @@ class RegistrationView(Authentication):
         self.outer_frame.pack(padx=20, pady=10)
 
         self.frame = ttk.Frame(self.outer_frame)
-        self.frame.pack(padx=20, pady=20)
+        self.frame.pack(padx=100, pady=100)
 
         self.title = ttk.Label(
             self.frame,
@@ -279,13 +287,11 @@ class RegistrationView(Authentication):
                 'Please enter a valid email address.'
             )
             return
-        if not self.validate_password(password):
-            for validator in AUTH_PASSWORD_VALIDATORS:
-                validator = validator()
-                result = validator.validate(password, messagebox)
-                if not result:
-                    break
-            return
+        for validator in AUTH_PASSWORD_VALIDATORS:
+            validator = validator()
+            result = validator.validate(password, messagebox)
+            if not result:
+                return
         if password != confirm_password:
             messagebox.showerror(
                 'Password Mismatch',
@@ -293,33 +299,35 @@ class RegistrationView(Authentication):
             )
             return
 
-        # ToDo :  Actual Register Logic and API calls goes here
         payload = dict(
             email=email,
             password=password,
-            first_name=name.split(' ')[0],
-            last_name=name.split(' ')[-1]
+            password_confirmation=confirm_password,
+            name=name,
         )
-        url = f'{API_BASE_URI}register/'
-        resp = requests.post(url, data=json.dumps(payload))
+        url = f'{API_BASE_URI}public/authenticaion/register'
+        resp = requests.post(
+            url,
+            data=payload,
+            headers={"Accept": "application/json"}
+        )
 
         if resp.status_code == 201:
-            if self.controller and self.on_login_success:
-                self.on_login_success(resp.json().get("data"))
-                print("hello  worlds")
-                self.master.destroy()
+            if self.on_login_success:
+                self.on_login_success(resp.json().get("token"))
         else:
             messagebox.showinfo(
-                'Register Attempt Failed!',
-                resp.json().get("detail")
+                title='Registration Attempt Failed!',
+                message=resp.json().get("errors")
             )
 
     def switch_to_login(self):
         self.login_view = LoginView(
-            controller=self.controller,
             on_login_success=self.on_login_success,
             master=self.master
         )
+        self.login_view.exec_function()
+
 
 
 # if __name__ == "__main__":

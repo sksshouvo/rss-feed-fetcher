@@ -10,17 +10,26 @@ import tkinter
 class View:
     interval_id = None
 
-    def __init__(self, app_name=settings.APP_NAME, favicon_path=settings.FAVICON_PATH, initial_show_limit=settings.INITIAL_SHOW_LIMIT):
+    def __init__(
+            self,
+            root,
+            on_logout,
+            app_name=settings.APP_NAME,
+            favicon_path=settings.FAVICON_PATH,
+            initial_show_limit=settings.INITIAL_SHOW_LIMIT
+    ):
+        self.on_logout = on_logout
         self.favicon_path = favicon_path
         self.app_name = app_name
         self.initial_show_limit = initial_show_limit
-        self.root = tkinter.Tk()
+        self.root = root
         self.rss_feed_data = []
         self.listbox = ""
         self.notification_manager = Notification_Manager(background="white")
         self.new_rss_feed_count = 0
         self.sound_file_path = "./assets/sounds/notification_sound.wav"
         self.rss_feed_controller = RssFeedController()
+        self.root.protocol("WM_DELETE_WINDOW", self.on_window_close)
     @staticmethod
     def on_validate_input(P):
         # This function is called when the Entry widget is modified
@@ -170,13 +179,14 @@ class View:
             value=interval_count_input,
             unit=clicked,
         )
+
         # start button
         start_button = tkinter.Button(
             self.root,
             text="Start",
             command=lambda link=link_input, interval_period=interval_period: self.on_start_button_click(link, interval_period)
         )
-        start_button.place(x=625, y=75, width=70, height=30)
+        start_button.place(x=550, y=75, width=70, height=30)
         self.start_button = start_button
         # start button
         stop_button = tkinter.Button(
@@ -184,8 +194,16 @@ class View:
             text="Stop",
             command=self.on_stop_button_click
         )
-        stop_button.place(x=700, y=75, width=70, height=30)
+        stop_button.place(x=625, y=75, width=70, height=30)
         self.stop_button = stop_button
+
+        logout_button = tkinter.Button(
+            self.root,
+            text="Logout",
+            command=self.on_logout
+        )
+        logout_button.place(x=700, y=75, width=70, height=30)
+
         # Code to add widgets will go here...
         # Create a LabelFrame
         data_section_frame = tkinter.Frame(
@@ -203,3 +221,10 @@ class View:
         rss_feed_text = tkinter.Label(self.root, text="Rss Feed List", bg='white', font=fontObj)
         rss_feed_text.place(x=20, y=160)
         self.root.mainloop()
+
+    def destroy_view(self):
+        for widget in self.root.winfo_children():
+            widget.destroy()
+
+    def on_window_close(self):
+        self.root.destroy()
