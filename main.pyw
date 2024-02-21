@@ -1,4 +1,4 @@
-from controller.auth import MasterController
+from controller.master import MasterController
 
 
 if __name__ == '__main__':

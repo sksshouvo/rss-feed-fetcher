@@ -162,4 +162,11 @@ class RssFeedModel(Database):
         connection.commit()
         connection.close()
 
+    def destroy_token(self):
+        connection = self.get_connection()
+        cursor = connection.cursor()
+        cursor.execute(f'''DELETE FROM {self.TOKEN_TABLE}''')
+        connection.commit()
+        connection.close()
+
     
