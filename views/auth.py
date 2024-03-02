@@ -5,7 +5,7 @@ import tkinter as tk
 import ttkbootstrap as ttk
 from abc import ABC
 from config.settings import AUTH_PASSWORD_VALIDATORS
-from config.settings import API_BASE_URI
+from config.settings import API_BASE_URL
 from tkinter import messagebox
 
 
@@ -153,7 +153,7 @@ class LoginView(Authentication):
             email=email,
             password=password
         )
-        url = f'{API_BASE_URI}public/authenticaion/login'
+        url = f'{API_BASE_URL}public/authenticaion/login'
         resp = requests.post(
             url,
             data=payload,
@@ -305,7 +305,7 @@ class RegistrationView(Authentication):
             password_confirmation=confirm_password,
             name=name,
         )
-        url = f'{API_BASE_URI}public/authenticaion/register'
+        url = f'{API_BASE_URL}public/authenticaion/register'
         resp = requests.post(
             url,
             data=payload,

@@ -21,4 +21,4 @@ AUTH_PASSWORD_VALIDATORS = [
     classes.validation.NumericPasswordValidator
 ]
 
-API_BASE_URI = os.environ.get("API_BASE_URI", "http://127.0.0.1:8000/api/")
+API_BASE_URL = os.environ.get("API_BASE_URL", "http://127.0.0.1:8000/api/")
